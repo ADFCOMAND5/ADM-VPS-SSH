@@ -850,60 +850,61 @@ class MultiProtocolAdminPanel:
         """Configura el entorno instalando dependencias y verificando permisos"""
         print("\n=== Configuración del Entorno ===")
         
-        # Eliminar repositorio problemático de Trojan
         try:
-            if os.path.exists('/etc/apt/sources.list.d/greaterfire-ubuntu-trojan-noble.list'):
-                subprocess.run(['rm', '/etc/apt/sources.list.d/greaterfire-ubuntu-trojan-noble.list'], check=True)
-            subprocess.run(['apt', 'update', '--fix-missing'], check=True)
-        except:
-            pass
-
-        # Lista actualizada de herramientas requeridas (sin trojan)
-        required_tools = {
-            "openvpn": "openvpn",
-            "wg": "wireguard-tools",
-            "sslocal": "shadowsocks-libev",
-            "v2ray": "v2ray"
-        }
-        
-        missing_tools = []
-
-        # Verificar herramientas instaladas
-        for tool, package in required_tools.items():
-            if not shutil.which(tool):
-                missing_tools.append((tool, package))
-                self.log(f"Advertencia: {tool} no está instalado.")
-
-        if missing_tools:
-            print("\nLas siguientes herramientas no están instaladas:")
-            for tool, _ in missing_tools:
-                print(f"- {tool}")
-            
-            if os.name == 'posix':
+            # Remove problematic repository file if exists
+            repo_file = '/etc/apt/sources.list.d/greaterfire-ubuntu-trojan-noble.list'
+            if os.path.exists(repo_file):
                 try:
-                    # Limpiar caché de apt
-                    subprocess.run(["apt", "clean"], check=True)
-                    subprocess.run(["apt", "autoclean"], check=True)
-                    
-                    print("\nInstalando herramientas faltantes...")
-                    for _, package in missing_tools:
-                        try:
-                            print(f"Instalando {package}...")
-                            subprocess.run(["apt", "install", "-y", package], check=True)
-                        except:
-                            print(f"Error al instalar {package}, continuando...")
-                            continue
+                    os.remove(repo_file)
+                    print("Repositorio problemático eliminado.")
+                except:
+                    print("No se pudo eliminar el repositorio problemático.")
 
-                    print("Instalación completada")
-                    return True
-                    
-                except Exception as e:
-                    print(f"\nError: {str(e)}")
-                    print("Continuando sin todas las herramientas...")
-                    return True
+            # Install Python packages first
+            print("\nInstalando dependencias de Python...")
+            python_packages = ["paramiko", "cryptography", "requests"]
+            for package in python_packages:
+                try:
+                    subprocess.run([sys.executable, "-m", "pip", "install", "--user", package], check=True)
+                except:
+                    print(f"Error al instalar {package}, continuando...")
 
-        print("\nConfiguración del entorno completada.")
-        return True
+            # System tools installation
+            if os.name == 'posix':
+                print("\nInstalando herramientas del sistema...")
+                
+                # Clean APT cache
+                subprocess.run(["apt", "clean"], check=False)
+                subprocess.run(["apt", "autoclean"], check=False)
+                
+                # Update package list without error stopping
+                try:
+                    subprocess.run(["apt", "update"], check=False)
+                except:
+                    pass
+
+                # Install required tools
+                tools = [
+                    "openvpn",
+                    "wireguard",
+                    "shadowsocks-libev",
+                    "v2ray"
+                ]
+
+                for tool in tools:
+                    try:
+                        subprocess.run(["apt", "install", "-y", tool], check=False)
+                    except:
+                        print(f"Error al instalar {tool}, continuando...")
+                        continue
+
+            print("\nConfiguración del entorno completada.")
+            return True
+
+        except Exception as e:
+            print(f"Error durante la configuración: {str(e)}")
+            print("Continuando con funcionalidad limitada...")
+            return True  # Return True to allow program to continue
                 
     def detect_package_manager(self):
         """Detecta el gestor de paquetes del sistema"""
