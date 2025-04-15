@@ -43,4 +43,7 @@ sudo python3 enhanced-admin-panel-final.py
 
 ## Licencia
 
-Este proyecto está bajo la Licencia MIT.
+Copyright (c) 2025 Corp Kad. Todos los derechos reservados.
+
+Este software es propietario y confidencial.
+Está prohibida la copia, modificación o distribución sin autorización expresa del autor.

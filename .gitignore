@@ -1,15 +1,26 @@
-# Python
+# Archivos sensibles
+.env
+encryption.key
+*.pem
+*.key
+*.crt
+*.cert
+
+# Configuración
+config/
+connections_config.txt
+
+# Caché y temporales
 __pycache__/
 *.py[cod]
 *$py.class
+.Python
 venv/
-.env
-
-# Archivos de configuración
+.env/
 *.log
-connections_config.txt
-encryption.key
-
-# Archivos temporales
 *.tmp
-*.bak
+
+# IDE
+.vscode/
+.idea/
+*.swp
